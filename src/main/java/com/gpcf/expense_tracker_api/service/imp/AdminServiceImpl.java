@@ -24,9 +24,7 @@ import java.util.List;
 public class AdminServiceImpl implements AdminService {
 
     private final ExpenseRepo expenseRepo;
-
     private final ExpenseCommentRepo expenseCommentRepo;
-
     private final AuthenticatedUserService authenticatedUserService;
 
     @Override
@@ -42,8 +40,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<ExpenseResponseDTO> getPendingExpenses() {
 
-        List<Expense> expenses =
-                expenseRepo.findByStatus(ExpenseStatus.PENDING);
+        List<Expense> expenses = expenseRepo.findByStatus(ExpenseStatus.PENDING);
 
         return expenses.stream()
                 .map(this::mapToDTO)
@@ -78,15 +75,10 @@ public class AdminServiceImpl implements AdminService {
         expenseRepo.save(expense);
 
         ExpenseComment comment = new ExpenseComment();
-
         comment.setMessage(dto.getMessage());
-
         comment.setSenderType(SenderType.ADMIN);
-
         comment.setCreatedAt(LocalDateTime.now());
-
         comment.setExpense(expense);
-
         comment.setUser(admin);
 
         expenseCommentRepo.save(comment);
@@ -96,6 +88,7 @@ public class AdminServiceImpl implements AdminService {
 
         return new ExpenseResponseDTO(
                 expense.getId(),
+                expense.getUser().getName(),
                 expense.getName(),
                 expense.getAmount(),
                 expense.getExpenseDate(),

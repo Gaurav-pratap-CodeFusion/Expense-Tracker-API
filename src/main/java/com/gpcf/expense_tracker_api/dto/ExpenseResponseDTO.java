@@ -17,6 +17,8 @@ public class ExpenseResponseDTO {
 
     private Long id;
 
+    private String username;
+
     private String name;
 
     private Double amount;

@@ -18,7 +18,6 @@ public class Role {
     @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private AppRole roleName;
-
     public Role(AppRole roleName) {
         this.roleName = roleName;
     }

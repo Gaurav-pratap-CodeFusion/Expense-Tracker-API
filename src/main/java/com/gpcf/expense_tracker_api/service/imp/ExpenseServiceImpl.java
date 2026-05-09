@@ -61,10 +61,30 @@ public class ExpenseServiceImpl implements ExpenseService {
         User loggedInUser = authenticatedUserService.getLoggedInUser();
 
         Expense expense = expenseRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Expense not found"
+                                )
+                        );
 
-        if (!expense.getUser().getId().equals(loggedInUser.getId())) {
-            throw new RuntimeException("You are not authorized to access this expense");
+        boolean isOwner =
+                expense.getUser()
+                        .getId()
+                        .equals(loggedInUser.getId());
+
+        boolean isAdmin =
+                loggedInUser.getRoles()
+                        .stream()
+                        .anyMatch(role ->
+                                role.getRoleName()
+                                        .name()
+                                        .equals("ADMIN")
+                        );
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException(
+                    "You are not authorized to access this expense"
+            );
         }
 
         return mapToDTO(expense);
@@ -90,7 +110,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expense.setUpdatedAt(LocalDateTime.now());
 
-        if (expense.getStatus() == ExpenseStatus.REJECTED) {
+        if (expense.getStatus() == ExpenseStatus.REJECTED || expense.getStatus() == ExpenseStatus.APPROVED) {
             expense.setStatus(ExpenseStatus.PENDING);
         }
 
@@ -119,6 +139,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return new ExpenseResponseDTO(
                 expense.getId(),
+                expense.getUser().getName(),
                 expense.getName(),
                 expense.getAmount(),
                 expense.getExpenseDate(),

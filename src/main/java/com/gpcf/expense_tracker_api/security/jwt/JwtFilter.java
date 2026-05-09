@@ -1,70 +1,89 @@
 package com.gpcf.expense_tracker_api.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gpcf.expense_tracker_api.dto.ErrorResponseDTO;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
+    private final JwtService jwtService;
 
-        @Autowired
-        private JwtService jwtService;
+    private final ObjectMapper objectMapper;
 
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        @Autowired
-        private UserDetailsService userDetailsService;
+        try {
 
+            String authentication = request.getHeader("Authorization");
 
-        @Override
-        protected void doFilterInternal(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        FilterChain filterChain) throws ServletException, IOException {
+            if (authentication == null || !authentication.startsWith("Bearer ")) {
 
-                String authentication = request.getHeader("Authorization");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
+            String token = authentication.substring(7);
 
-                if(authentication == null || !authentication.startsWith("Bearer ")){
-                    filterChain.doFilter(request,response);
-                    return;
-                }
+            String username = jwtService.extractUsername(token);
 
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                String token = authentication.substring(7);
+                List<String> roles = jwtService.extractRoles(token);
 
-                String username = jwtService.extractUsername(token);
+                List<SimpleGrantedAuthority> authorities =
+                        roles.stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toList());
 
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                authorities
+                        );
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    List<String> roles = jwtService.extractRoles(token);
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
 
-                    List<SimpleGrantedAuthority> authorities = roles.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
+            filterChain.doFilter(request, response);
 
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    username,
-                                    null,
-                                    authorities
-                            );
+        } catch (Exception ex) {
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-                filterChain.doFilter(request,response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
+            response.setContentType("application/json");
 
+            ErrorResponseDTO error =
+                    new ErrorResponseDTO(
+                            401,
+                            "Token Expired or Invalid",
+                            LocalDateTime.now()
+                    );
+
+            objectMapper.writeValue(response.getOutputStream(), error);
+
+            return;
         }
     }
+}

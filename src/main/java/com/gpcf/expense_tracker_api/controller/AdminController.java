@@ -21,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
+@CrossOrigin(origins = "*")
 public class AdminController {
 
     @Autowired
@@ -45,9 +46,10 @@ public class AdminController {
         }
 
         user.getRoles().add(adminRole);
+
         userRepository.save(user);
 
-        return ResponseEntity.ok(user.getUsername() + " Promoted successfully for admin");
+        return ResponseEntity.ok(user.getUsername() + " Promoted successfully for an admin");
     }
 
 

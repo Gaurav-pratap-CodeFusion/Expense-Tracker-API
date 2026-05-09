@@ -1,4 +1,4 @@
-package com.gpcf.expense_tracker_api.service;
+package com.gpcf.expense_tracker_api.service.imp;
 
 import com.gpcf.expense_tracker_api.dto.AuthResponseDTO;
 import com.gpcf.expense_tracker_api.dto.LoginRequestDTO;

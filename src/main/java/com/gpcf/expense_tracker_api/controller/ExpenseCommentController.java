@@ -14,11 +14,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/expenses")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ExpenseCommentController {
 
     private final ExpenseCommentService expenseCommentService;
 
-    @PostMapping("/{expenseId}/comments")
+    @PostMapping("/{expenseId}/ ")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> addComment(@PathVariable Long expenseId, @Valid @RequestBody ExpenseCommentRequestDTO dto) {
 

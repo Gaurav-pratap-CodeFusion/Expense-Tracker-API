@@ -51,7 +51,6 @@ public class ExpenseCommentServiceImpl
         }
 
         ExpenseComment comment = new ExpenseComment();
-
         comment.setMessage(dto.getMessage());
 
         if (isAdmin) {
@@ -61,17 +60,13 @@ public class ExpenseCommentServiceImpl
         }
 
         comment.setCreatedAt(LocalDateTime.now());
-
         comment.setExpense(expense);
-
         comment.setUser(loggedInUser);
-
         expenseCommentRepo.save(comment);
     }
 
     @Override
-    public List<ExpenseCommentResponseDTO>
-    getExpenseComments(Long expenseId) {
+    public List<ExpenseCommentResponseDTO> getExpenseComments(Long expenseId) {
 
         User loggedInUser = authenticatedUserService.getLoggedInUser();
 
