@@ -19,7 +19,7 @@ public class ExpenseCommentController {
 
     private final ExpenseCommentService expenseCommentService;
 
-    @PostMapping("/{expenseId}/ ")
+    @PostMapping("/{expenseId}/comments")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> addComment(@PathVariable Long expenseId, @Valid @RequestBody ExpenseCommentRequestDTO dto) {
 
